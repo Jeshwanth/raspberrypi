@@ -1,0 +1,171 @@
+﻿Raspberry pi 
+
+
+1. Setting static IP to raspberry pi and connect my laptop (using ubuntu 11.10) to raspberry pi using cross cable:
+
+
+	a. To do in Raspberry pi:
+	Open /etc/network/interfaces file in raspberry pi (as a root user), made following changes:
+
+
+	1. There is a line “iface eth0 inet dhcp”, change it to “iface eth0 inet static”.
+	2. Add following lines below above mentioned line.
+		address 192.168.1.72
+		netmask 255.255.255.0
+
+
+	b. To do in PC:
+        Edit the IP address of the system by changing “Automatic (DHCP)” to “Manual” method. and set the following:
+                address 192.168.1.71
+                netmask 255.255.255.0
+                gateway 192.168.1.1
+
+
+Restart Raspberry pi.
+
+
+Execute following command in your PC to connect to Raspberry pi.
+“ssh pi@192.168.1.72 -X” (it will prompt for password)
+
+
+Now it is connected to my pi :). 
+
+
+2. Arduino and Raspberry pi communication serially using pySerial library.
+
+
+I thought of connecting arduino Pins with Raspberry pi GPIO Pins. Raspberry pi’s GPIO works with 3.3v, and arduino GPIO works with 5.0v. I needed a interface ( logic level converter ) to connect both. So I thought of using serial communication and connected USB directly to Raspberry pi. 
+
+
+Compile and upload below code in arduino.
+
+
+// declaring 13th pin as ledPin
+const int ledPin = 13;
+
+void setup()
+{
+ // Setting ledPin to output mode.
+  pinMode(ledPin, OUTPUT);
+ // Start serial communication with baudrate 9600.
+  Serial.begin(9600);
+}
+
+void loop()
+{
+  // Continuously write “Hello Pi” to serial for every 1 second..
+  Serial.println("Hello Pi");
+
+
+ // Check whether any input data is available.
+  if (Serial.available())
+  {
+         flash(Serial.read() - '0');
+  }
+  delay(1000);
+}
+
+
+// blink the ledPin, number of times it received.
+void flash(int n)
+{
+  for (int i = 0; i < n; i++)
+  {
+        digitalWrite(ledPin, HIGH);
+        delay(100);
+        digitalWrite(ledPin, LOW);
+        delay(100);
+  }
+}
+
+So I found /dev/ttyACM0 device, this is my arduino. Did “cat /dev/ttyACM0”, got put “Hello pi”.
+
+
+We can use library pySerial to read and write into serial port.
+
+
+You can download in http://pyserial.sourceforge.net/.
+
+
+pi@raspberrypi ~/tools/pyserial-2.5 $ python
+Python 2.7.3rc2 (default, May  6 2012, 20:02:25)
+[GCC 4.6.3] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import serial
+>>> ser = serial.Serial('/dev/ttyACM0',9600)
+>>> while 1 :
+...         ser.readline()
+...
+'Hello Pi\r\n'
+'Hello Pi\r\n'
+'Hello Pi\r\n'
+'Hello Pi\r\n'
+'Hello Pi\r\n'
+...
+ctrl+C
+
+
+ser.write('5')
+
+
+We can use above simple commands to communicate with our Arduino :).
+
+
+
+
+
+
+3. GPIO PINs Rev 2.0:
+
+
+p1
+3.3v                       O O         5.0v
+GPIO 2 / I2C_SDA           O O         5.0v
+GPIO 3 / I2C_SCL           O O         GND
+GPIO 4 / GPCLK0            O O         GPIO 14 / UART_TXD
+GND                        O O         GPIO 15 / UART_RXD
+GPIO 17 / UART_RTS         O O         GPIO 18 / PWM0
+GPIO 27 / PCM_DIN          O O         GND
+GPIO 22 / SD1_CLK          O O         GPIO 23 / SD1_CMD
+3.3v                       O O         GPIO 24 / SD1_DATA0
+GPIO 10 / SPI_MOSI         O O         GND
+GPIO 9 / SPI_MISO          O O         GPIO 25 / ARM_TCK
+GPIO 11 / SPI_SCLK         O O         GPIO 8 / SPIO_CE0
+GND                        O O         GPIO 7 / SPIO_CE1
+
+
+
+
+4. GPIO access through sysfs shell:
+
+
+#!/bin/sh
+
+# GPIO numbers should be from this list
+# 2, 3, 4, 7, 8, 9, 10, 11, 14, 15, 17, 18, 22, 23, 24, 25, 27
+
+# Note that the GPIO numbers that you program here refer to the pins
+# of the BCM2835 and *not* the numbers on the pin header. 
+# So, if you want to activate GPIO7 on the header you should be 
+# using GPIO4 in this script. Likewise if you want to activate GPIO0
+# on the header you should be using GPIO17 here.
+
+# Set up GPIO 4 and set to output
+echo "4" > /sys/class/gpio/export
+echo "out" > /sys/class/gpio/gpio4/direction
+
+# Set up GPIO 7 and set to input
+echo "7" > /sys/class/gpio/export
+echo "in" > /sys/class/gpio/gpio7/direction
+
+# Write output
+echo "1" > /sys/class/gpio/gpio4/value
+
+# Read from input
+cat /sys/class/gpio/gpio7/value 
+
+# Clean up
+echo "4" > /sys/class/gpio/unexport
+echo "7" > /sys/class/gpio/unexport
+
+Reference: http://elinux.org/RPi_Low-level_peripherals#GPIO_Code_examples
