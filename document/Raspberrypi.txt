@@ -110,11 +110,6 @@ ser.write('5')
 
 We can use above simple commands to communicate with our Arduino :).
 
-
-
-
-
-
 3. GPIO PINs Rev 2.0:
 
 
@@ -169,3 +164,20 @@ echo "4" > /sys/class/gpio/unexport
 echo "7" > /sys/class/gpio/unexport
 
 Reference: http://elinux.org/RPi_Low-level_peripherals#GPIO_Code_examples
+
+5. I2C Configuration in raspberry pi.
+
+	add below two lines in /etc/modules
+
+		i2c-dev 
+		i2c-bcm2708
+	
+	Comment out below mentioned lines in /etc/modprobe.d/raspi-blacklist.conf file.
+
+	#blacklist spi-bcm2708
+	#blacklist i2c-bcm2708
+
+
+
+
+
