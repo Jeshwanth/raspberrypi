@@ -190,7 +190,7 @@ Reference: http://elinux.org/RPi_Low-level_peripherals#GPIO_Code_examples
 
 	-> Detect the address of i2c eeprom using i2cdetect utility.
 
-		Example: For me i2c in address 0x50. Here 1 is i2c bus number.
+		Example: For me i2c in address 0x50. Here 1 is i2c bus number.(In model B bus no. is 1)
 			$i2cdetect -r 1
 			     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
 			00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
@@ -203,7 +203,7 @@ Reference: http://elinux.org/RPi_Low-level_peripherals#GPIO_Code_examples
 			70: -- -- -- -- -- -- -- -- 
 
 
-	-> set some number to i2c registers: by passing the address and value.
+	-> Store data in EEPROM by witing a byte of data into a register address.
 		Example: $i2cset -f -y 1 0x50 0x10 0x22
 	        Here setting the value 0x22 to the register 0x10 of eeprom(0x50) which is in bus 1.
 
