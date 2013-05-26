@@ -177,7 +177,44 @@ Reference: http://elinux.org/RPi_Low-level_peripherals#GPIO_Code_examples
 	#blacklist spi-bcm2708
 	#blacklist i2c-bcm2708
 
+6. I2C Basics:
+
+-> Interfacing Raspberry pi with Atmel718 24C02 EEPROM;
+	-> Pin Connection:
+		Raspberry pi   --  EEPROM(Atmel 24C02)
+		____________	   _________
+		     3.3v(1)|  -- |VCC(5) 
+		     GND(12)|  -- |VSS(4)
+		      SDA(2)|  -- |SDA(8)
+		      SCL(3)|  -- |SCL(7)
+
+	-> Detect the address of i2c eeprom using i2cdetect utility.
+
+		Example: For me i2c in address 0x50. Here 1 is i2c bus number.(In model B bus no. is 1)
+			$i2cdetect -r 1
+			     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+			00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
+			10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+			20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+			30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+			40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+			50: 50 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+			60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+			70: -- -- -- -- -- -- -- -- 
 
 
+	-> Store data in EEPROM by witing a byte of data into a register address.
+		Example: $i2cset -f -y 1 0x50 0x10 0x22
+	        Here setting the value 0x22 to the register 0x10 of eeprom(0x50) which is in bus 1.
 
+	--> Get the data from eeprom by passing address.
+		Example: $i2cget -f -y 1 0x50 0x10
+			 0x22
+		Here getting the data from eeprom(0x50) from register 0x10 of bus 1. It returned 0x22 as we set before.
 
+	--> Dump the register content ( range ) of eeprom.
+		Example: i2cdump -r 0x00-0x10 -y 1 0x50 b
+		     	    0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+			00: 67 55 ff ff ff ff ff ff ff ff ff ff ff ff ff ff    gU..............
+			10: 22                                                 "               
+		Here the tool reading the address from 0x00 to 0x10 from EEPROM(0x50) of i2c bus 1 and b is byte.
